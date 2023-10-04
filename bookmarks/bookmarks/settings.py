@@ -24,7 +24,7 @@ SECRET_KEY = 'django-insecure-z-)dl*r9tqx9s5i)dgve4fa!*636k9gdsqqbh)pu$7em)-f_*p
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['mysite.com', 'localhost', '127.0.0.1']
 
 # Application definition
 
@@ -36,6 +36,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'social_django',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
@@ -96,6 +98,23 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'account.authentication.EmailAuthBackend',
+    'social_core.backends.facebook.FacebookOAuth2',
+    'social_core.backends.twitter.TwitterOAuth',
+    'social_core.backends.google.GoogleOAuth2',
+]
+
+SOCIAL_AUTH_FACEBOOK_KEY = 'XXX'  # ИД приложения Facebook
+SOCIAL_AUTH_FACEBOOK_SECRET = 'XXX'  # Секрет приложения Facebook
+SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
+
+SOCIAL_AUTH_TWITTER_KEY = 'XXX'  # Ключ API Twitter
+SOCIAL_AUTH_TWITTER_SECRET = 'XXX'  # Секрет API Twitter
+
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = 'XXX' # ИД клиента Google
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'XXX' # Секрет клиента Google
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -131,6 +150,6 @@ LOGOUT_URL = 'logout'
 # ля, чтобы зарегистрировать его выход.
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' #Django предоставляет почтовый бэкенд, позволяющий писать письма в консоль.
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Django предоставляет почтовый бэкенд, позволяющий писать письма в консоль.
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'

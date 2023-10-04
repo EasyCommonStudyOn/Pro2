@@ -26,17 +26,44 @@ class UserRegistrationForm(forms.ModelForm):
         return cd[
             'password2']  # Мы определили метод clean_password2(), чтобы сравнивать второй пароль с первым и выдавать ошибки валидации, если пароли не совпадают.
 
+    def clean_email(self):
+        data = self.cleaned_data.get('email')
+
+        if User.objects.filter(email=data).exists():
+            raise forms.ValidationError('Email already in use.')
+
+        return data
+
+    """
+    Мы добавили валидацию поля электронной почты, которая не позволяет
+пользователям регистрироваться с уже существующим адресом электронной
+почты. Мы формируем набор запросов QuerySet, чтобы свериться, нет ли
+существующих пользователей с одинаковым адресом электронной почты.
+Мы проверяем наличие результатов посредством метода exists(). Метод exists()
+возвращает True, если набор запросов QuerySet содержит какие-либо
+результаты, и False в противном случае."""
+
 
 class UserEditForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'email']
 
+    def clean_email(self):
+        data = self.cleaned_data['email']
+        qs = User.objects.exclude(id=self.instance.id).filter(email=data)
+
+        if qs.exists():
+            raise forms.ValidationError('Email already in use.')
+        return data
+
 
 class ProfileEditForm(forms.ModelForm):
     class Meta:
         model = Profile
         fields = ['date_of_birth', 'photo']
+
+
 """
 UserEditForm позволит пользователям редактировать свое имя, фами-
 лию и адрес электронной почты, которые являются атрибутами встро-
