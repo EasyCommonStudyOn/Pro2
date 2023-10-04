@@ -116,3 +116,21 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_REDIRECT_URL = 'dashboard'
+LOGIN_URL = 'login'
+LOGOUT_URL = 'logout'
+# Мы определили следующие настроечные параметры:
+# • LOGIN_REDIRECT_URL: сообщает Django URL-адрес, на который следует пе-
+# ренаправлять пользователя после успешного входа, если в запросе нет
+# параметра next;
+# • LOGIN_URL: URL-адрес, на который следует перенаправлять пользователя,
+# чтобы зарегистрировать его вход (например, представления, в которых
+# используется декоратор login_required);
+# • LOGOUT_URL: URL-адрес, на который следует перенаправлять пользовате-
+# ля, чтобы зарегистрировать его выход.
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' #Django предоставляет почтовый бэкенд, позволяющий писать письма в консоль.
+MEDIA_URL = 'media/'
+MEDIA_ROOT = BASE_DIR / 'media'
