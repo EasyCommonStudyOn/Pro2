@@ -4,6 +4,10 @@ from django.contrib import messages
 from .forms import ImageCreateForm
 from django.shortcuts import get_object_or_404
 from .models import Image
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.http import HttpResponse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 
 @login_required
@@ -63,3 +67,78 @@ def image_detail(request, id, slug):
     return render(request, 'images/image/detail.html',
                   {'section': 'images',
                    'image': image})
+
+
+@login_required
+@require_POST
+def image_like(request):
+    image_id = request.POST.get('id')
+    action = request.POST.get('action')
+    if image_id and action:
+        try:
+            image = Image.objects.get(id=image_id)
+            if action == 'like':
+                image.users_like.add(request.user)
+            else:
+                image.users_like.remove(request.user)
+            return JsonResponse({'status': 'ok'})
+        except Image.DoesNotExist:
+            pass
+    return JsonResponse({'status': 'error'})
+
+
+@login_required
+def image_list(request):
+    images = Image.objects.all()
+    paginator = Paginator(images, 8)
+    page = request.GET.get('page')
+    images_only = request.GET.get('images_only')
+    try:
+        images = paginator.page(page)
+    except PageNotAnInteger:
+        # Если страница не является целым числом,
+        # то доставить первую страницу
+        images = paginator.page(1)
+    except EmptyPage:
+        if images_only:
+            # Если AJAX-запрос и страница вне диапазона,
+            # то вернуть пустую страницу
+            return HttpResponse('')
+        # Если страница вне диапазона,
+        # то вернуть последнюю страницу результатов
+        images = paginator.page(paginator.num_pages)
+    if images_only:
+        return render(request,
+                      'images/image/list_images.html',
+                      {'section': 'images',
+                       'images': images})
+    return render(request,
+                  'images/image/list.html',
+                  {'section': 'images',
+                   'images': images})
+
+"""
+В этом представлении создается набор запросов QuerySet, чтобы извлекать
+все изображения из базы данных. Затем формируется объект Paginator, чтобы
+разбивать результаты на страницы, беря по восемь изображений на стра-
+ницу. Извлекается HTTP GET-параметр page, чтобы получить запрошенный
+номер страницы. Извлекается HTTP GET-параметр images_only, чтобы узнать,
+должна ли прорисовываться вся страница целиком или же только новые
+изображения. Мы будем прорисовывать всю страницу целиком, когда она
+запрашивается браузером. Однако мы будем прорисовывать HTML только
+с новыми изображениями в случае запросов Fetch API, поскольку мы будем
+добавлять их в существующую HTML-страницу.
+Исключение EmptyPage будет вызываться в случае, если запрошенная стра-
+ница находится вне допустимого диапазона. Если это так и нужно прори-
+совывать только изображения, то будет возвращаться пустой HttpResponse.
+Такой подход позволит останавливать AJAX-ориентированное постраничное
+разбиение на стороне клиента при достижении последней страницы. Резуль-
+таты прорисовываются с использованием двух разных шаблонов:
+• в случае HTTP-запросов на JavaScript, которые будут содержать пара-
+метр images_only, будет прорисовываться шаблон list_images.html. Этот
+шаблон будет содержать изображения только запрошенной страницы;
+• в случае браузерных запросов будет прорисовываться шаблон list.html.
+Этот шаблон будет расширять шаблон base.html, чтобы отображать всю
+страницу целиком, и будет вставлять шаблон list_images.html, который
+будет вставлять список изображений."""
+

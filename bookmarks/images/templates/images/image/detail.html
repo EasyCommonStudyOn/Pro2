@@ -6,19 +6,38 @@
 <a href="{{ image.image.url }}">
     <img src="{% thumbnail image.image 300x0 %}" class="image-detail">
 
-<!--    Мы определили миниатюру с фиксированной шириной 300 пикселов и гиб- -->
-<!--кой высотой, чтобы поддерживать соотношение сторон, используя значение-->
-<!--0. Когда пользователь загружает эту страницу в первый раз, будет сформиро- -->
-<!--вано изображение-миниатюра. Миниатюра хранится в том же каталоге, что-->
-<!--и исходный файл.-->
+    <!--    Мы определили миниатюру с фиксированной шириной 300 пикселов и гиб- -->
+    <!--кой высотой, чтобы поддерживать соотношение сторон, используя значение-->
+    <!--0. Когда пользователь загружает эту страницу в первый раз, будет сформиро- -->
+    <!--вано изображение-миниатюра. Миниатюра хранится в том же каталоге, что-->
+    <!--и исходный файл.-->
 
 </a>
 {% with total_likes=image.users_like.count %}
 <div class="image-info">
     <div>
 <span class="count">
-{{ total_likes }} like{{ total_likes|pluralize }}
+<span class="total">{{ total_likes }}</span>
+like{{ total_likes|pluralize }}
 </span>
+        <a href="#" data-id="{{ image.id }}" data-action="{% if request.user in users_
+like %}un{% endif %}like" class="like button">
+            {% if request.user not in users_like %}
+            Like
+            {% else %}
+            Unlike
+            {% endif %}
+
+            <!--В приведенном выше исходном коде в шаблонный тег {% with %} была-->
+            <!--добавлена еще одна переменная, чтобы хранить результаты запроса image.-->
+            <!--users_like.all и избегать многократного исполнения запроса к базе дан- -->
+            <!--ных. Указанная переменная используется для проверки наличия текущего-->
+            <!--пользователя в списке с по мощью {% if request.user in users_like %}, а за- -->
+            <!--тем с по мощью {% if request.user not in users_like %}. Эта же переменная-->
+            <!--используется для прокручивания пользователей, которые поставили этому-->
+            <!--изображению лайк, в цикле с по мощью {% for user in users_like %}.-->
+
+        </a>
     </div>
     {{ image.description|linebreaks }}
 </div>
@@ -36,3 +55,42 @@
 </div>
 {% endwith %}
 {% endblock %}
+
+{% block domready %}
+const url = '{% url "images:like" %}';
+var options = {
+method: 'POST',
+headers: {'X-CSRFToken': csrftoken},
+mode: 'same-origin'
+}
+document.querySelector('a.like')
+.addEventListener('click', function(e){
+e.preventDefault();
+var likeButton = this;
+
+// добавить тело запроса
+var formData = new FormData();
+formData.append('id', likeButton.dataset.id);
+formData.append('action', likeButton.dataset.action);
+options['body'] = formData;
+// отправить HTTP-запрос
+fetch(url, options)
+.then(response => response.json())
+.then(data => {
+if (data['status'] === 'ok')
+{
+var previousAction = likeButton.dataset.action;
+// переключить текст кнопки и атрибут data-action
+var action = previousAction === 'like' ? 'unlike' : 'like';
+likeButton.dataset.action = action;
+likeButton.innerHTML = action;
+// обновить количество лайков
+var likeCount = document.querySelector('span.count .total');
+var totalLikes = parseInt(likeCount.innerHTML);
+likeCount.innerHTML = previousAction === 'like' ? totalLikes + 1 : totalLikes – 1;
+}
+})
+
+});
+{% endblock %}
+
