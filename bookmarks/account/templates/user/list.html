@@ -1,0 +1,27 @@
+<!--Приведенный выше шаблон позволяет перечислять всех активных поль- -->
+<!--зователей на сайте. Заданные пользователи прокручиваются в цикле, и шаб- -->
+<!--лонный тег {% thumbnail %} из easy-thumbnails используется для генерирования-->
+<!--миниатюр изображ ений, о тносящихся к данному профилю.-->
+<!--Обратите внимание, что у пользователей должно быть изображение про- -->
+<!--филя.-->
+
+{% extends "base.html" %}
+{% load thumbnail %}
+{% block title %}People{% endblock %}
+{% block content %}
+<h1>People</h1>
+<div id="people-list">
+    {% for user in users %}
+    <div class="user">
+        <a href="{{ user.get_absolute_url }}">
+            <img src="{% thumbnail user.profile.photo 180x180 %}">
+        </a>
+        <div class="info">
+            <a href="{{ user.get_absolute_url }}" class="title">
+                {{ user.get_full_name }}
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
